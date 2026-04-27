@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, ArrowRightLeft, Flame, TrendingUp, ChefHat, Clock } from 'lucide-react';
+import { CalendarDays, ArrowRightLeft, Flame, TrendingUp, ChefHat, Clock, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import SwapModal from '../components/SwapModal';
@@ -30,7 +31,9 @@ const DashboardPage = () => {
     { icon: ArrowRightLeft, label: 'Swaps This Month', value: '12', color: 'text-gold' },
     { icon: Flame, label: 'Day Streak', value: '18', color: 'text-orange-400' },
     { icon: TrendingUp, label: 'Money Saved', value: '₹740', color: 'text-emerald-400' },
+    { icon: Activity, label: 'Health Score', value: '85', color: 'text-blue-400', link: '/nutrition' },
   ];
+
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -52,24 +55,33 @@ const DashboardPage = () => {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-cocoa border border-white/5 rounded-2xl p-5 flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-offwhite">{stat.value}</p>
-                <p className="text-xs text-warm-grey">{stat.label}</p>
-              </div>
-            </motion.div>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          {stats.map((stat, i) => {
+            const CardContent = (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className={`bg-cocoa border border-white/5 rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start gap-4 ${stat.link ? 'hover:border-gold/30 transition-colors' : ''}`}
+              >
+                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="text-2xl font-bold text-offwhite">{stat.value}</p>
+                  <p className="text-xs text-warm-grey">{stat.label}</p>
+                </div>
+              </motion.div>
+            );
+
+            return stat.link ? (
+              <Link to={stat.link} key={stat.label} className="block">
+                {CardContent}
+              </Link>
+            ) : (
+              <div key={stat.label}>{CardContent}</div>
+            );
+          })}
         </div>
 
         {/* Weekly Calendar */}
