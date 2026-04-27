@@ -41,31 +41,54 @@ FlexiTiffin introduces a flexible and user-centric approach to tiffin services b
 
 ## 🚀 Key Features
 
-* Daily meal selection system
-* Meal swapping functionality
-* Subscription management
-* User preference handling
-* Clean and responsive user interface
+* **Customizable Subscriptions**: Starter, Regular, and Pro tiers with monthly/annual billing.
+* **Daily Meal Selection & Swapping**: Swap meals effortlessly based on preferences.
+* **Nutrition Tracker**: Real-time calorie and macronutrient visualization.
+* **Admin Dashboard**: Manage menus, view revenue analytics, and track subscribers.
+* **Refer & Earn**: Built-in referral system with progress tracking.
+* **Secure Payments**: Integrated with Razorpay (simulated checkout flow).
+* **Theme Support**: Seamless Dark (Spice Market) and Light (Vanilla Cream) mode toggling.
+* **Robust Auth**: JWT-based authentication with role-based access control (User/Admin).
 
 ---
 
 ## 🎨 UI/UX Design
 
-Figma Design Link:
-https://www.figma.com/design/dFyEuSN5vcs57WZQup2XO8/Untitled?node-id=14-3&t=FVQOA6rq9WHwTOUw-1
+* Designed with a premium **Espresso, Cocoa, and Gold** color palette.
+* Features smooth micro-interactions powered by `framer-motion`.
+* Fully responsive across mobile, tablet, and desktop.
 
 ---
 
-## 🎯 Project Objective
+## 🚀 Deployment Instructions
 
-The objective of this project is to enhance user satisfaction in tiffin services by introducing flexibility and personalization. By allowing users to customize meals, the system aims to reduce food wastage, improve user experience, and modernize traditional subscription-based meal services.
+### Frontend (Vercel)
+1. Push the repository to GitHub.
+2. Go to [Vercel](https://vercel.com/) and create a new project.
+3. Import the repository and set the **Framework Preset** to `Create React App`.
+4. Set the **Root Directory** to `frontend`.
+5. Add Environment Variables (if any).
+6. Click **Deploy**. (The `vercel.json` file is already included to handle React Router client-side routing).
+
+### Backend (Render / Heroku)
+1. Go to [Render](https://render.com/) and create a new **Web Service**.
+2. Connect the GitHub repository.
+3. Set the **Root Directory** to `backend`.
+4. Set the **Build Command** to `npm install` and the **Start Command** to `npm start`.
+5. Add the following Environment Variables:
+   * `PORT`: `5000`
+   * `MONGO_URI`: Your MongoDB Atlas connection string.
+   * `JWT_SECRET`: A secure random string for JWT signing.
+6. Click **Create Web Service**.
 
 ---
 
-## 🔮 Future Scope
+## 🤝 Contributing
 
-* AI-based personalized meal recommendations
-* Nutrition and calorie tracking
-* Mobile application development
+Contributions, issues, and feature requests are welcome!
 
 ---
+
+## 📝 License
+
+This project is MIT licensed.
