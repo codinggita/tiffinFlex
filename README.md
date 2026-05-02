@@ -78,6 +78,13 @@ flowchart TD
 
 * **Indexes**: `{ name: 'text', category: 1 }` to optimize catalog text search and filtering queries.
 
+> ⚠️ Note: Macronutrient fields (protein, carbs, fat) are referenced in the Features section
+> but are not currently present in the Meal schema. These will need to be added to support
+> the Nutrition Tracking Dashboard feature.
+
+> Note: The Subscription model is not yet implemented. The architecture references
+> subscriptions as a planned data layer component.
+
 ---
 
 ## 4. 🚀 Features
@@ -106,7 +113,7 @@ flowchart TD
 | `@reduxjs/toolkit` | `^2.11.2` | Predictable, centralized state management and async thunks. |
 | `tailwindcss` | `3.4.4` | Utility-first CSS framework for rapid UI development. |
 | `framer-motion` | `^11.0.0` | Orchestrates cinematic page transitions and micro-interactions. |
-| `vite` | `8.0.10` | Next-generation frontend tooling and bundler. |
+| `vite` | `^8.0.10` | Next-generation frontend tooling and bundler. |
 | **Backend** | | |
 | `express` | `^5.2.1` | Web framework handling routing and middleware execution. |
 | `mongoose` | `^9.5.0` | Object Data Modeling (ODM) for MongoDB interactions. |
@@ -210,14 +217,38 @@ console.log(meals);
 |----------|----------|---------|-------------|
 | `VITE_API_URL` | **Yes** | None | Base URL pointing to the Express backend API. |
 
+```text
+# backend/.env.example
+PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/tiffinflex
+JWT_SECRET=your_super_secret_jwt_key
+
+# Email Service (Resend)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+EMAIL_FROM=noreply@yourdomain.com
+
+# Google OAuth
+GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxxx
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3000
+```
+
+```text
+# frontend/.env.example
+VITE_API_URL=http://localhost:5000/api
+```
+
 ---
 
 ## 9. 🤝 Contributing
 
-We welcome contributions! 
+Contributions are welcome! 
 
 1. **Development Setup:** Ensure your local environment matches the exact Node versions defined in `package.json`.
-2. **Code Style:** We utilize default `react-app` ESLint configurations. Run `npm run lint` before committing.
+2. **Code Style:** This project uses default `react-app` ESLint configurations. Run `npm run lint` before committing.
 3. **Commit Conventions:** Please use clear, imperative commit messages (e.g., `Fix OTP validation fallback`).
 4. **Pull Requests:** Open a PR against the `main` branch. Ensure you update relevant documentation if altering the API surface.
 
