@@ -108,6 +108,21 @@ const authSlice = createSlice({
           state.error = action.payload?.message || 'Login failed';
         }
       })
+      .addCase(signup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signup.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload.requiresVerification) {
+          state.requiresVerification = true;
+          state.verificationEmail = action.payload.email;
+        }
+      })
+      .addCase(signup.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || 'Signup failed';
+      })
       .addCase(verifyOTP.pending, (state) => {
         state.loading = true;
         state.error = null;
