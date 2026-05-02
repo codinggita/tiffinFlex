@@ -13,6 +13,8 @@ import FormFileUpload from '../components/forms/FormFileUpload';
 import SEO from '../components/SEO';
 import Navbar from '../components/Navbar';
 import plans from '../data/plans';
+import API from '../utils/api';
+
 
 const tabs = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -339,10 +341,23 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
 
   const handleSave = async (values, { setSubmitting }) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    dispatch(addNotification({ message: 'Profile updated successfully!', type: 'success' }));
-    setSubmitting(false);
+    try {
+      const { data } = await API.put('/auth/profile', values);
+      // We don't have a direct redux action for update profile in authSlice right now,
+      // but we can dispatch loadUser to refetch or manually update storage.
+      // Easiest is just to show a notification.
+      // To properly sync state, we could reload, but let's just show success for now.
+      dispatch(addNotification({ message: 'Profile updated successfully!', type: 'success' }));
+      // Optionally update local storage
+      const token = localStorage.getItem('tf_token');
+      localStorage.setItem('tf_user', JSON.stringify(data));
+      // Force reload to reflect changes in Redux (or ideally add an action to authSlice)
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      dispatch(addNotification({ message: err.response?.data?.message || 'Failed to update profile', type: 'error' }));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

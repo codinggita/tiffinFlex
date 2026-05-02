@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Edit3, Trash2, Save, X, UtensilsCrossed, Search, Filter
@@ -7,25 +7,33 @@ import { useDispatch } from 'react-redux';
 import { addNotification } from '../../store/slices/uiSlice';
 import Navbar from '../../components/Navbar';
 import EmptyState from '../../components/ui/EmptyState';
-
-const initialMeals = [
-  { id: 1, name: 'Paneer Butter Masala', category: 'North Indian', calories: 480, price: 120, inventory: 50, active: true },
-  { id: 2, name: 'Dal Tadka + Rice', category: 'North Indian', calories: 380, price: 90, inventory: 80, active: true },
-  { id: 3, name: 'Chole Bhature', category: 'North Indian', calories: 550, price: 100, inventory: 40, active: true },
-  { id: 4, name: 'Grilled Chicken Bowl', category: 'Continental', calories: 420, price: 150, inventory: 30, active: true },
-  { id: 5, name: 'Veg Thali', category: 'Thali', calories: 520, price: 110, inventory: 60, active: false },
-  { id: 6, name: 'Rajma Chawal', category: 'North Indian', calories: 410, price: 85, inventory: 70, active: true },
-];
+import API from '../../utils/api';
 
 const emptyMeal = { name: '', category: 'North Indian', calories: '', price: '', inventory: '', active: true };
 const categories = ['North Indian', 'South Indian', 'Continental', 'Chinese', 'Thali'];
 
 const MenuManager = () => {
   const dispatch = useDispatch();
-  const [meals, setMeals] = useState(initialMeals);
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null); // meal id or 'new'
   const [form, setForm] = useState(emptyMeal);
+
+  // Fetch meals from API
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        const { data } = await API.get('/meals');
+        setMeals(data.map(m => ({ ...m, id: m._id })));
+      } catch (err) {
+        dispatch(addNotification({ message: 'Failed to load meals.', type: 'error' }));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMeals();
+  }, [dispatch]);
 
   // Performance: memoize filtered list
   const filtered = useMemo(() => 
@@ -48,34 +56,61 @@ const MenuManager = () => {
     setForm(emptyMeal);
   };
 
-  const saveMeal = () => {
+  const saveMeal = async () => {
     if (!form.name || !form.calories || !form.price) {
       dispatch(addNotification({ message: 'Please fill all required fields.', type: 'error' }));
       return;
     }
-    if (editing === 'new') {
-      const newMeal = { ...form, id: Date.now(), calories: +form.calories, price: +form.price, inventory: +form.inventory || 0 };
-      setMeals((prev) => [...prev, newMeal]);
-      dispatch(addNotification({ message: `"${form.name}" added to menu!`, type: 'success' }));
-    } else {
-      setMeals((prev) => prev.map((m) =>
-        m.id === editing ? { ...form, calories: +form.calories, price: +form.price, inventory: +form.inventory || 0 } : m
-      ));
-      dispatch(addNotification({ message: `"${form.name}" updated!`, type: 'success' }));
+    try {
+      if (editing === 'new') {
+        const { data } = await API.post('/meals', {
+          name: form.name,
+          category: form.category,
+          calories: +form.calories,
+          price: +form.price,
+          inventory: +form.inventory || 0,
+          active: form.active,
+        });
+        setMeals((prev) => [{ ...data, id: data._id }, ...prev]);
+        dispatch(addNotification({ message: `"${form.name}" added to menu!`, type: 'success' }));
+      } else {
+        const { data } = await API.put(`/meals/${editing}`, {
+          name: form.name,
+          category: form.category,
+          calories: +form.calories,
+          price: +form.price,
+          inventory: +form.inventory || 0,
+          active: form.active,
+        });
+        setMeals((prev) => prev.map((m) => m.id === editing ? { ...data, id: data._id } : m));
+        dispatch(addNotification({ message: `"${form.name}" updated!`, type: 'success' }));
+      }
+    } catch (err) {
+      dispatch(addNotification({ message: err.response?.data?.message || 'Save failed.', type: 'error' }));
     }
     cancelEdit();
   };
 
-  const deleteMeal = (id, name) => {
-    setMeals((prev) => prev.filter((m) => m.id !== id));
-    dispatch(addNotification({ message: `"${name}" removed from menu.`, type: 'info' }));
+  const deleteMeal = async (id, name) => {
+    try {
+      await API.delete(`/meals/${id}`);
+      setMeals((prev) => prev.filter((m) => m.id !== id));
+      dispatch(addNotification({ message: `"${name}" removed from menu.`, type: 'info' }));
+    } catch (err) {
+      dispatch(addNotification({ message: err.response?.data?.message || 'Delete failed.', type: 'error' }));
+    }
   };
 
-  const toggleActive = (id) => {
-    setMeals((prev) => prev.map((m) =>
-      m.id === id ? { ...m, active: !m.active } : m
-    ));
+  const toggleActive = async (id) => {
+    const meal = meals.find(m => m.id === id);
+    try {
+      const { data } = await API.put(`/meals/${id}`, { active: !meal.active });
+      setMeals((prev) => prev.map((m) => m.id === id ? { ...data, id: data._id } : m));
+    } catch (err) {
+      dispatch(addNotification({ message: 'Toggle failed.', type: 'error' }));
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-espresso">
