@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, Leaf, Wheat, Dumbbell, Star } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import meals from '../data/meals';
+import API from '../utils/api';
 
 const categories = ['All', 'North Indian', 'South Indian', 'Chinese', 'Desserts'];
 const dietaryFilters = [
@@ -13,11 +13,27 @@ const dietaryFilters = [
 const sortOptions = ['Popular', 'Calories: Low → High', 'Calories: High → Low', 'Price: Low → High'];
 
 const MenuPage = () => {
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeDietary, setActiveDietary] = useState([]);
   const [sortBy, setSortBy] = useState('Popular');
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        const { data } = await API.get('/meals?active=true');
+        setMeals(data.map(m => ({ ...m, id: m._id })));
+      } catch (err) {
+        console.error('Failed to fetch meals', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMeals();
+  }, []);
 
   const toggleDietary = (tag) => {
     setActiveDietary((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
@@ -33,11 +49,12 @@ const MenuPage = () => {
     if (sortBy === 'Price: Low → High') result.sort((a, b) => a.price - b.price);
     if (sortBy === 'Popular') result.sort((a, b) => b.rating - a.rating);
     return result;
-  }, [search, activeCategory, activeDietary, sortBy]);
+  }, [meals, search, activeCategory, activeDietary, sortBy]);
 
   return (
     <div className="min-h-screen bg-espresso">
       <Navbar />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">

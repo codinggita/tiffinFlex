@@ -5,11 +5,11 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/Navbar';
 import SwapModal from '../components/SwapModal';
-import weeklyMenu from '../data/weeklyMenu';
 import { MealCardSkeleton, StatSkeleton } from '../components/ui/LoadingSkeletons';
 import EmptyState from '../components/ui/EmptyState';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import SEO from '../components/SEO';
+import API from '../utils/api';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -17,17 +17,42 @@ const DashboardPage = () => {
   const { user } = useSelector((state) => state.auth);
   const [selectedDay, setSelectedDay] = useState(0);
   const [swapModal, setSwapModal] = useState({ open: false, meal: null, type: '' });
-  const [menus, setMenus] = useState(weeklyMenu);
+  const [menus, setMenus] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const todayMenu = menus[selectedDay];
 
-  // Simulate loading on mount
+  // Fetch meals and construct weekly menu
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
+    const fetchMeals = async () => {
+      try {
+        const { data } = await API.get('/meals?active=true');
+        if (data.length > 0) {
+          const generatedMenu = days.map((day, i) => ({
+            day,
+            date: `2026-04-${27 + i}`,
+            lunch: data[i % data.length],
+            dinner: data[(i + 5) % data.length],
+            swapOptions: [
+              data[(i + 2) % data.length],
+              data[(i + 4) % data.length],
+              data[(i + 7) % data.length],
+            ].filter(Boolean),
+            isCustomized: i === 1 || i === 4,
+            isSkipped: i === 6,
+          }));
+          setMenus(generatedMenu);
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load menu');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMeals();
   }, []);
+
 
   const handleSwapClose = (swappedMeal) => {
     if (swappedMeal) {
