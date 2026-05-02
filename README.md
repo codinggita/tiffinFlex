@@ -31,14 +31,14 @@ It solves the widespread problem of food waste and subscriber dissatisfaction ca
 
 ```mermaid
 flowchart TD
-    Client[React Client (Browser)] -->|HTTPS API Requests| Vercel(Vercel Edge Network)
-    Vercel -->|Proxied Requests| Express[Node.js / Express Backend]
+    Client["React Client (Browser)"] -->|HTTPS API Requests| Vercel("Vercel Edge Network")
+    Vercel -->|Proxied Requests| Express["Node.js / Express Backend"]
     
     subgraph Backend Infrastructure
-    Express -->|Auth Middleware| Passport[Passport.js / JWT]
-    Express -->|Controllers| MealsLogic[Meal & Auth Controllers]
-    MealsLogic -->|Mongoose ODM| DB[(MongoDB Atlas)]
-    MealsLogic -->|SMTP/API| Resend[Resend Email API]
+    Express -->|Auth Middleware| Passport["Passport.js / JWT"]
+    Express -->|Controllers| MealsLogic["Meal & Auth Controllers"]
+    MealsLogic -->|Mongoose ODM| DB[("MongoDB Atlas")]
+    MealsLogic -->|SMTP/API| Resend["Resend Email API"]
     end
 ```
 
