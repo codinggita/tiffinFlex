@@ -310,4 +310,3 @@ const MenuRow = React.memo(({ meal, onEdit, onDelete, onToggle }) => (
 ));
 
 export default MenuManager;
-lt MenuManager;
