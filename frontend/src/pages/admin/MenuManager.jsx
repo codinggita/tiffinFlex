@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Edit3, Trash2, Save, X, UtensilsCrossed, Search,
+  Plus, Edit3, Trash2, Save, X, UtensilsCrossed, Search, Filter
 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { addNotification } from '../../store/slices/uiSlice';
 import Navbar from '../../components/Navbar';
+import EmptyState from '../../components/ui/EmptyState';
 
 const initialMeals = [
   { id: 1, name: 'Paneer Butter Masala', category: 'North Indian', calories: 480, price: 120, inventory: 50, active: true },
@@ -26,8 +27,10 @@ const MenuManager = () => {
   const [editing, setEditing] = useState(null); // meal id or 'new'
   const [form, setForm] = useState(emptyMeal);
 
-  const filtered = meals.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase())
+  // Performance: memoize filtered list
+  const filtered = useMemo(() => 
+    meals.filter((m) => m.name.toLowerCase().includes(search.toLowerCase())),
+    [meals, search]
   );
 
   const startEdit = (meal) => {
@@ -95,24 +98,35 @@ const MenuManager = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={startAdd}
-            className="flex items-center gap-2 bg-gold hover:bg-gold-light text-espresso px-5 py-2.5 rounded-xl font-bold text-sm transition-colors"
+            className="flex items-center gap-2 bg-gold hover:bg-gold-light text-espresso px-5 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-lg shadow-gold/20"
             id="add-meal-btn"
           >
             <Plus className="w-4 h-4" /> Add Meal
           </motion.button>
         </motion.div>
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-grey" />
-          <input
-            type="text"
-            placeholder="Search meals..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-cocoa border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-offwhite placeholder-warm-grey/40 focus:outline-none focus:border-gold/30"
-            id="menu-search"
-          />
+        {/* Search & Stats */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+           <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-grey" />
+            <input
+              type="text"
+              placeholder="Search meals..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-cocoa border border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-sm text-offwhite placeholder-warm-grey/40 focus:outline-none focus:border-gold/30 transition-all"
+            />
+          </div>
+          <div className="flex gap-4">
+             <div className="bg-cocoa border border-white/5 rounded-xl px-4 py-2 flex items-center gap-3">
+                <span className="text-xs text-warm-grey uppercase font-bold tracking-wider">Total</span>
+                <span className="text-gold font-serif font-bold">{meals.length}</span>
+             </div>
+             <div className="bg-cocoa border border-white/5 rounded-xl px-4 py-2 flex items-center gap-3">
+                <span className="text-xs text-warm-grey uppercase font-bold tracking-wider">Active</span>
+                <span className="text-emerald-400 font-serif font-bold">{meals.filter(m => m.active).length}</span>
+             </div>
+          </div>
         </div>
 
         {/* Add/Edit Form */}
@@ -122,134 +136,178 @@ const MenuManager = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mb-6"
+              className="overflow-hidden mb-8"
             >
-              <div className="bg-cocoa border border-gold/20 rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-gold mb-4">
+              <div className="bg-cocoa border border-gold/20 rounded-2xl p-6 shadow-2xl shadow-gold/5">
+                <h3 className="text-sm font-bold text-gold mb-6 uppercase tracking-widest">
                   {editing === 'new' ? '➕ Add New Meal' : '✏️ Edit Meal'}
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                  <input
-                    type="text"
-                    placeholder="Meal name *"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-offwhite placeholder-warm-grey/40 focus:outline-none focus:border-gold/30"
-                  />
-                  <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-warm-grey focus:outline-none focus:border-gold/30"
-                  >
-                    {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Calories *"
-                    value={form.calories}
-                    onChange={(e) => setForm({ ...form, calories: e.target.value })}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-offwhite placeholder-warm-grey/40 focus:outline-none focus:border-gold/30"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Price (₹) *"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-offwhite placeholder-warm-grey/40 focus:outline-none focus:border-gold/30"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Inventory cap"
-                    value={form.inventory}
-                    onChange={(e) => setForm({ ...form, inventory: e.target.value })}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-offwhite placeholder-warm-grey/40 focus:outline-none focus:border-gold/30"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-warm-grey ml-1">Meal Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Butter Chicken"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      className="w-full bg-espresso border border-white/10 rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-gold/30"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-warm-grey ml-1">Category</label>
+                    <select
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="w-full bg-espresso border border-white/10 rounded-xl px-4 py-3 text-sm text-warm-grey focus:outline-none focus:border-gold/30"
+                    >
+                      {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-warm-grey ml-1">Calories</label>
+                    <input
+                      type="number"
+                      placeholder="kcal"
+                      value={form.calories}
+                      onChange={(e) => setForm({ ...form, calories: e.target.value })}
+                      className="w-full bg-espresso border border-white/10 rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-gold/30"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-warm-grey ml-1">Price (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="Amount"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      className="w-full bg-espresso border border-white/10 rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-gold/30"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-warm-grey ml-1">Inventory</label>
+                    <input
+                      type="number"
+                      placeholder="Max daily orders"
+                      value={form.inventory}
+                      onChange={(e) => setForm({ ...form, inventory: e.target.value })}
+                      className="w-full bg-espresso border border-white/10 rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-gold/30"
+                    />
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={saveMeal}
-                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl font-bold text-sm transition-colors"
-                  >
-                    <Save className="w-4 h-4" /> Save
-                  </motion.button>
+                <div className="flex gap-3 justify-end border-t border-white/5 pt-6">
                   <button
                     onClick={cancelEdit}
-                    className="flex items-center gap-2 text-sm text-warm-grey hover:text-red-400 transition-colors"
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-warm-grey hover:text-offwhite transition-colors"
                   >
-                    <X className="w-4 h-4" /> Cancel
+                    Cancel
                   </button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={saveMeal}
+                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-lg shadow-emerald-500/10"
+                  >
+                    <Save className="w-4 h-4" /> Save Meal
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Meals Table */}
-        <div className="bg-cocoa border border-white/5 rounded-3xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/5">
-                  <th className="px-6 py-4 text-xs font-medium text-warm-grey">Meal</th>
-                  <th className="px-4 py-4 text-xs font-medium text-warm-grey hidden sm:table-cell">Category</th>
-                  <th className="px-4 py-4 text-xs font-medium text-warm-grey">Cal</th>
-                  <th className="px-4 py-4 text-xs font-medium text-warm-grey">Price</th>
-                  <th className="px-4 py-4 text-xs font-medium text-warm-grey hidden md:table-cell">Stock</th>
-                  <th className="px-4 py-4 text-xs font-medium text-warm-grey">Status</th>
-                  <th className="px-4 py-4 text-xs font-medium text-warm-grey text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((meal) => (
-                  <tr key={meal.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <UtensilsCrossed className="w-4 h-4 text-gold" />
-                        <span className="text-sm font-medium text-offwhite">{meal.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-xs text-warm-grey hidden sm:table-cell">{meal.category}</td>
-                    <td className="px-4 py-4 text-xs text-warm-grey">{meal.calories}</td>
-                    <td className="px-4 py-4 text-xs text-offwhite font-medium">₹{meal.price}</td>
-                    <td className="px-4 py-4 text-xs text-warm-grey hidden md:table-cell">{meal.inventory}</td>
-                    <td className="px-4 py-4">
-                      <button
-                        onClick={() => toggleActive(meal.id)}
-                        className={`text-[10px] px-2.5 py-1 rounded-full font-bold cursor-pointer transition-colors ${
-                          meal.active ? 'text-emerald-400 bg-emerald-400/10' : 'text-warm-grey bg-white/5'
-                        }`}
-                      >
-                        {meal.active ? 'Active' : 'Inactive'}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => startEdit(meal)}
-                          className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-warm-grey hover:text-gold hover:bg-gold/10 transition-colors"
-                          aria-label={`Edit ${meal.name}`}
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => deleteMeal(meal.id, meal.name)}
-                          className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-warm-grey hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                          aria-label={`Delete ${meal.name}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+        {/* Meals Table or Empty State */}
+        <div className="bg-cocoa border border-white/5 rounded-3xl overflow-hidden shadow-xl">
+          {filtered.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-white/5 bg-white/[0.01]">
+                    <th className="px-6 py-5 text-xs font-bold text-warm-grey uppercase tracking-widest">Meal</th>
+                    <th className="px-4 py-5 text-xs font-bold text-warm-grey uppercase tracking-widest hidden sm:table-cell">Category</th>
+                    <th className="px-4 py-5 text-xs font-bold text-warm-grey uppercase tracking-widest">Cal</th>
+                    <th className="px-4 py-5 text-xs font-bold text-warm-grey uppercase tracking-widest">Price</th>
+                    <th className="px-4 py-5 text-xs font-bold text-warm-grey uppercase tracking-widest hidden md:table-cell">Stock</th>
+                    <th className="px-4 py-5 text-xs font-bold text-warm-grey uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-5 text-xs font-bold text-warm-grey uppercase tracking-widest text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {filtered.map((meal) => (
+                      <MenuRow 
+                        key={meal.id} 
+                        meal={meal} 
+                        onEdit={startEdit} 
+                        onDelete={deleteMeal} 
+                        onToggle={toggleActive} 
+                      />
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <EmptyState 
+              title="No meals found" 
+              message={search ? `No results for "${search}"` : "Your menu is empty."}
+              icon={Search}
+              action={search ? { label: "Clear Search", onClick: () => setSearch('') } : null}
+            />
+          )}
         </div>
       </div>
     </div>
   );
 };
 
+// Memoized row for performance
+const MenuRow = React.memo(({ meal, onEdit, onDelete, onToggle }) => (
+  <motion.tr 
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors group"
+  >
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
+          <UtensilsCrossed className="w-4 h-4 text-gold" />
+        </div>
+        <span className="text-sm font-bold text-offwhite">{meal.name}</span>
+      </div>
+    </td>
+    <td className="px-4 py-4 text-xs text-warm-grey hidden sm:table-cell font-medium">{meal.category}</td>
+    <td className="px-4 py-4 text-xs text-warm-grey">{meal.calories}</td>
+    <td className="px-4 py-4 text-xs text-offwhite font-bold">₹{meal.price}</td>
+    <td className="px-4 py-4 text-xs text-warm-grey hidden md:table-cell">{meal.inventory}</td>
+    <td className="px-4 py-4">
+      <button
+        onClick={() => onToggle(meal.id)}
+        className={`text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-tighter cursor-pointer transition-all ${
+          meal.active ? 'text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20' : 'text-warm-grey bg-white/5 hover:bg-white/10'
+        }`}
+      >
+        {meal.active ? 'Active' : 'Inactive'}
+      </button>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => onEdit(meal)}
+          className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-warm-grey hover:text-gold hover:bg-gold/10 transition-all"
+        >
+          <Edit3 className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDelete(meal.id, meal.name)}
+          className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-warm-grey hover:text-red-400 hover:bg-red-400/10 transition-all"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </td>
+  </motion.tr>
+));
+
 export default MenuManager;
+lt MenuManager;
