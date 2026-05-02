@@ -19,6 +19,8 @@ app.set('trust proxy', 1);
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173',
     'https://tiffin-flex.vercel.app',
     process.env.FRONTEND_URL
   ].filter(Boolean),

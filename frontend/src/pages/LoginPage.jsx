@@ -150,7 +150,7 @@ const LoginPage = () => {
                     />
                     <span className="text-sm text-warm-grey">Remember me</span>
                   </label>
-                  <Link to="/forgot-password" university className="text-sm text-gold hover:text-gold-light transition-colors">Forgot password?</Link>
+                  <Link to="/forgot-password" className="text-sm text-gold hover:text-gold-light transition-colors">Forgot password?</Link>
                 </div>
 
                 <motion.button
